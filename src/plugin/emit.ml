@@ -57,7 +57,8 @@ let emit_enum_type ~scope ~params
 let emit_service_type scope ServiceDescriptorProto.{ name; method' = methods; _ } =
   let emit_method t scope MethodDescriptorProto.{ name; input_type; output_type; _} =
     let name = Scope.get_name_exn scope name in
-    let uncapital_name = String.uncapitalize_ascii name in
+    let name_mangled = Names.field_name name in
+    let uncapital_name = String.uncapitalize_ascii name_mangled in
     let capital_name = String.capitalize_ascii name in
     let input = Scope.get_scoped_name scope input_type in
     let input_t = Scope.get_scoped_name scope input_type ~postfix:"t"in
