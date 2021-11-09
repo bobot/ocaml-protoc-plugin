@@ -17,9 +17,12 @@ let make_service_functions (type req) (type rep)
 
 
 (** Services v2 *)
-
-type yes = [ `Yes ]
-type no  = [ `No ]
+type yes = Yes_t
+type no = Not_t
+type 'a feature_availability =
+  | Yes : yes feature_availability
+  | No : no feature_availability
+  (** Used to indicate that a service as some feature or not *)
 
 module type Rpc = sig
   module Request : Message
@@ -27,6 +30,8 @@ module type Rpc = sig
   val name : string
   type client_streaming
   type server_streaming
+  val client_streaming: client_streaming feature_availability
+  val server_streaming: server_streaming feature_availability
 end
 
 type ('req,'rep,'cs,'ss) service =

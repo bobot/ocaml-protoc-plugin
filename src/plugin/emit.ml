@@ -64,13 +64,16 @@ let emit_service_type scope ServiceDescriptorProto.{ name; method' = methods; _ 
     let input_t = Scope.get_scoped_name scope input_type ~postfix:"t"in
     let output = Scope.get_scoped_name scope output_type in
     let output_t = Scope.get_scoped_name scope output_type ~postfix:"t" in
-    let bool () b = if b then "yes" else "no" in
+    let type_bool () b = if b then "yes" else "no" in
+    let val_bool () b = if b then "Yes" else "No" in
     Code.emit t `Begin "module %s = struct" capital_name;
     Code.emit t `None "let name = \"/%s/%s\"" (Scope.get_current_proto_path scope) name;
     Code.emit t `None "module Request = %s" input;
     Code.emit t `None "module Response = %s" output;
-    Code.emit t `None "type client_streaming = Runtime'.Service.%a" bool client_streaming;
-    Code.emit t `None "type server_streaming = Runtime'.Service.%a" bool server_streaming ;
+    Code.emit t `None "type client_streaming = Runtime'.Service.%a" type_bool client_streaming;
+    Code.emit t `None "type server_streaming = Runtime'.Service.%a" type_bool server_streaming ;
+    Code.emit t `None "let client_streaming = Runtime'.Service.%a" val_bool client_streaming;
+    Code.emit t `None "let server_streaming = Runtime'.Service.%a" val_bool server_streaming ;
     Code.emit t `End "end";
     Code.emit t `None "let %s = " uncapital_name;
     Code.emit t `None "( (module %s : Runtime'.Service.Message with type t = %s ), "
@@ -84,7 +87,7 @@ let emit_service_type scope ServiceDescriptorProto.{ name; method' = methods; _ 
                        and type client_streaming = Runtime'.Service.%a \
                        and type server_streaming = Runtime'.Service.%a)"
       uncapital_name capital_name input_t output_t
-      bool client_streaming bool server_streaming;
+      type_bool client_streaming type_bool server_streaming;
   in
   let name = Option.value_exn ~message:"Service definitions must have a name" name in
   let t = Code.init () in
