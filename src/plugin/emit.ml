@@ -55,7 +55,7 @@ let emit_enum_type ~scope ~params
   {module_name; signature; implementation}
 
 let emit_service_type scope ServiceDescriptorProto.{ name; method' = methods; _ } =
-  let emit_method t scope MethodDescriptorProto.{ name; input_type; output_type; _} =
+  let emit_method t scope MethodDescriptorProto.{ name; input_type; output_type; client_streaming; server_streaming; _} =
     let name = Scope.get_name_exn scope name in
     let name_mangled = Names.field_name name in
     let uncapital_name = String.uncapitalize_ascii name_mangled in
@@ -64,10 +64,13 @@ let emit_service_type scope ServiceDescriptorProto.{ name; method' = methods; _ 
     let input_t = Scope.get_scoped_name scope input_type ~postfix:"t"in
     let output = Scope.get_scoped_name scope output_type in
     let output_t = Scope.get_scoped_name scope output_type ~postfix:"t" in
+    let bool () b = if b then "yes" else "no" in
     Code.emit t `Begin "module %s = struct" capital_name;
-    Code.emit t `None "let name' () = \"/%s/%s\"" (Scope.get_current_proto_path scope) name;
+    Code.emit t `None "let name = \"/%s/%s\"" (Scope.get_current_proto_path scope) name;
     Code.emit t `None "module Request = %s" input;
     Code.emit t `None "module Response = %s" output;
+    Code.emit t `None "type client_streaming = Runtime'.Service.%a" bool client_streaming;
+    Code.emit t `None "type server_streaming = Runtime'.Service.%a" bool server_streaming ;
     Code.emit t `End "end";
     Code.emit t `None "let %s = " uncapital_name;
     Code.emit t `None "( (module %s : Runtime'.Service.Message with type t = %s ), "
@@ -76,7 +79,12 @@ let emit_service_type scope ServiceDescriptorProto.{ name; method' = methods; _ 
     Code.emit t `None "  (module %s : Runtime'.Service.Message with type t = %s ) ) "
       output
       output_t;
-    Code.emit t `None "let %s' = (module %s : Runtime'.Service.Rpc with type Request.t = %s and type Response.t = %s)" uncapital_name capital_name input_t output_t;
+    Code.emit t `None "let %s' = (module %s : Runtime'.Service.Rpc with type Request.t = %s \
+                       and type Response.t = %s \
+                       and type client_streaming = Runtime'.Service.%a \
+                       and type server_streaming = Runtime'.Service.%a)"
+      uncapital_name capital_name input_t output_t
+      bool client_streaming bool server_streaming;
   in
   let name = Option.value_exn ~message:"Service definitions must have a name" name in
   let t = Code.init () in
