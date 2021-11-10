@@ -37,7 +37,7 @@ module Make(T : T) = struct
 
     | Bool : bool spec
     | String : string spec
-    | Bytes : bytes spec
+    | Bytes : string spec
     | Enum :  ('a, int -> 'a Result.t, 'a -> int) T.dir -> 'a spec
     | Message : ('a, Reader.t -> 'a Result.t, 'a -> Writer.t) T.dir -> 'a spec
 

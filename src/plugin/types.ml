@@ -76,7 +76,7 @@ let make_default: type a. a spec -> string -> a = function
 
   | Bool -> bool_of_string
   | String -> fun x -> x
-  | Bytes -> Bytes.of_string
+  | Bytes -> fun x -> x
   | Enum _ -> fun x -> failwith (sprintf "Defaults for enums cannot be handled here: %s" x) (* Scope.get_scoped_name ~postfix:x scope type_name*)
   | Message _ -> failwith "Messages do not have defaults"
 
@@ -110,7 +110,7 @@ let string_of_default: type a. a spec -> a -> string = function
 
   | Bool -> string_of_bool
   | String -> sprintf "{|%s|}"
-  | Bytes -> fun bytes -> sprintf "(Bytes.of_string {|%s|})" (Bytes.to_string bytes)
+  | Bytes -> sprintf "{|%s|}"
   | Enum (_, _, _,  s) -> fun _ -> Option.value_exn s
   | Message _ -> failwith "Messages defaults are not relevant"
 
@@ -144,7 +144,7 @@ let default_of_spec: type a. a spec -> string = fun spec -> match spec with
 
   | Bool -> string_of_default spec false
   | String -> string_of_default spec ""
-  | Bytes -> string_of_default spec (Bytes.of_string "")
+  | Bytes -> string_of_default spec ""
   | Enum (_ , s, _,  _) -> sprintf {|(%s 0 |> Runtime'.Result.get ~msg:"Code gen error")|} s
   | Message _ -> failwith "Messages defaults are not relevant"
 
@@ -267,7 +267,7 @@ let spec_of_type ~params ~scope type_name default =
 
   | TYPE_BOOL     -> Espec Bool
   | TYPE_STRING   -> Espec String
-  | TYPE_BYTES    -> Espec Bytes
+  | TYPE_BYTES    -> Espec String
 
   | TYPE_GROUP    -> failwith "Groups not supported"
   | TYPE_MESSAGE  -> Espec (spec_of_message ~scope type_name)
